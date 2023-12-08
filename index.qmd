@@ -1,0 +1,554 @@
+---
+title: "temp"
+---
+
+### **Introduction**
+
+In studies conducted outside of the United States, people who were able to commute via physical activity (such as walking and bike riding) were significantly associated with having increased positive health indicators (Chillón, et al., 2012; Andersen et al., 2011). Additionally, those who have access and regularly use public transportation have decreased commute stress compared to those who drive daily([link](https://books.google.com/books?hl=en&lr=&id=4AwOp6sJl3oC&oi=fnd&pg=PP1&dq=United+States+of+American+and+transportation+%22car%22&ots=bQb5vPsFn3&sig=O-1A2h3ZtZgaQ2Lljyx2Ibqg5Xo#v=onepage&q=United%20States%20of%20American%20and%20transportation%20%22car%22&f=false)).
+
+Although it is known in public health and urban planning literature, the majority of the United States is a car centered landscape. Starting in the 1920's, the American population became increasingly interested in personal motor vehicles, forcing administrators and engineers to rapidly build road infrastructure without regard to future potential problems ([link](https://books.google.com/books?hl=en&lr=&id=4AwOp6sJl3oC&oi=fnd&pg=PP1&dq=United+States+of+American+and+transportation+%22car%22&ots=bQb5vPsFn3&sig=O-1A2h3ZtZgaQ2Lljyx2Ibqg5Xo#v=onepage&q=United%20States%20of%20American%20and%20transportation%20%22car%22&f=false)). In 2019, the US Census Bureau reported that 75% of Americans drive alone as their means of transportation, 5% use public transportation, and less than 3% use physical exercise ([link](https://www.census.gov/content/dam/Census/library/publications/2021/acs/acs-48.pdf)).
+
+In order to investigate this gap between knowledge and practice, the California Health and Human Services Open Data Portal was utilized to access transportation and health data. In the portal, I used a dataset called "Transportation to Work" from the Healthy Communities Data and Indicators Project of the Office of Health Equity. Although the datasets provide a comprehensive overview of transportation in America, the main variable I will focus on is the frequency of different types of transportation people take to go to work (car, car pool, walking, riding a bike, and public transportation). Health status indicators were also accessed through the California Health and Human Services Open Data portal via a report by the California Department of Public health and the California Conference of Local Health Officers entitled, "County Health Status Profiles". In the dataset, health indicators were collected at county-level. For this project, the following health indicators were utilized: Deaths Due to Alzeimer's Disease, Deaths Due to Coronary Heart Disease, and Deaths Due to Diabetes. Additionally, in order to better assess the health of a county, the county's "Rank" was utlized. This variable is is the ranking each county was given based on the age adjusted rate of deaths due to common diseases in which low rankings (1-25) would be counties with better health indicators compared to counties with higher rankings (26+). In this study, multiple questions will be answered that all address the overarching question: What is the association between different health indicators (diseases) and mode of transportation? The associations that will be investigated are:
+
+1.  Car vs. Alzheimer's disease
+
+2.  Car vs Coronary heart disease
+
+3.  Car vs Diabetes
+
+4.  Physical vs Alzheimer's disease
+
+5.  Physical vs  Coronary heart disease
+
+6.  Physical vs Diabetes
+
+7.  Public transportation vs Alzheimer's disease
+
+8.  Public transportation vs Diabetes
+
+9.  Public transportation vs  Coronary heart disease
+
+10. Rank of County vs. modes of transportation
+
+### **Methods**
+
+The first step after reading in the data was to filter each data-set to only include one year of data (although the years of the two data-sets did not overlap, the closest years were chosen). The data was limited to only including the following health indicators: Deaths Due to Diabetes, Deaths Due to Alzheimer's Disease, and Deaths Due to Coronary Heart Disease. Additionally, the data-sets were limited to stratas with the Total population, therefore not seperating the data by race/ethnicity. 
+
+```{r, echo=FALSE}
+library(tidytext)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(leaflet)
+library(data.table)
+library(knitr)
+library(readxl)
+library(kableExtra)
+library(boot)
+library(table1)
+library(plotly)
+```
+
+```{r, echo=FALSE}
+worktransport <- read_excel("worktransport.xlsx")
+```
+
+```{r, echo=FALSE}
+
+worktransport <- worktransport %>%
+  filter(race_eth_name == "Total" & reportyear == "2008-2010") %>%
+  rename(County = county_name)
+
+```
+
+```{r, echo=FALSE}
+worktransport2 <- worktransport %>%
+  filter(!is.na(mode) & !is.na(percent)) 
+
+#worktransport3=subset(worktransport2, select= -c(version, CA_decile, percent_rse, pop_total, region_code, county_fips, ind_id, ind_definition))
+```
+
+Dataset 2: County Health Status Profiles
+
+```{r, echo=FALSE}
+countyhealth <- read_csv("countyhealthstatus.csv")
+```
+
+```{r, echo=FALSE}
+healthind <-c("Deaths Due to Alzheimer's Disease","Deaths Due to Coronary Heart Disease","Deaths Due to Diabetes")
+countyhealth <- filter(countyhealth, Health_Indicator_Desc %in% healthind)
+```
+
+```{r, echo=FALSE}
+
+countyhealth <- mutate(countyhealth, coronary= ifelse(Health_Indicator_Desc=="Deaths Due to Coronary Heart Disease",1 ,0))
+countyhealth <- mutate(countyhealth, alzheimer= ifelse(Health_Indicator_Desc=="Deaths Due to Alzheimer's Disease",1 ,0))
+countyhealth <- mutate(countyhealth, diabetes= ifelse(Health_Indicator_Desc=="Deaths Due to Diabetes",1 ,0))
+
+```
+
+```{r, echo=FALSE}
+countyhealth$coronaryrate <- ifelse(countyhealth$coronary == 1 & countyhealth$Health_Indicator_Desc == "Deaths Due to Coronary Heart Disease",  countyhealth$`Age-Adjusted_Rate`, NA)
+countyhealth$alzheimerrate <- ifelse(countyhealth$alzheimer == 1 & countyhealth$Health_Indicator_Desc == "Deaths Due to Alzheimer's Disease",  countyhealth$`Age-Adjusted_Rate`, NA)
+countyhealth$diabetesrate <- ifelse(countyhealth$diabetes == 1 & countyhealth$Health_Indicator_Desc == "Deaths Due to Diabetes",  countyhealth$`Age-Adjusted_Rate`, NA)
+
+
+```
+
+```{r, echo=FALSE}
+summary(countyhealth$diabetesrate)
+```
+
+```{r, echo=FALSE}
+#countyhealth = subset(countyhealth, select = -c(Annotation_Desc, Rates_Annotation_Code, Numerator_Annotation_Code, Denominator_Annotation_Code, Numerator_Year_Period, Numerator_Total, Numerator_Average,Denominator_Total, Table, Healthy_People_Objective_Number, Healthy_People_Objective_Met
+#) )
+```
+
+```{r, echo=FALSE}
+countyhealth <- filter(countyhealth, Strata=="Total Population")
+```
+
+After, all variables that were not going to be used were removed from each data-set in order to reduce the data-set sizes. Then, data-sets were merged based on the County variable, and the data-set was checked for duplicates. Continuing the data cleaning process, the proportion of missing values in each key variable were checked (all variables had less than 2% of NA values) and verified to continue. Implausible values were checked for each main key variable(none were found). Following this, variables with difficult or ambiguous names were renamed, and new categorical variables were created. The ranking of each county variable was made into a new variable to distinguish counties that had low, low-mid, mid, and high rankings. The mode of transportation variable was narrowed down into a simpler categorical variable (ex: bike riding and walking were combined into one "physical" subcategory).
+
+```{r, echo=FALSE}
+transhealth <- merge(
+  # Data
+  x     = worktransport2,      
+  y     = countyhealth, 
+  # List of variables to match
+  by.x  = "County",
+  by.y  = "County", 
+  # Which obs to keep?
+  all.x = TRUE,      
+  all.y = TRUE
+  )
+```
+
+```{r, echo=FALSE}
+transhealth <- mutate(transhealth,
+                      modenew = ifelse(mode == "BICYCLE" | mode == "WALK", "physical",
+                                     ifelse(mode == "CAR" , "car", 
+                                            ifelse(mode=="CARPOOL", "carpool",
+                                                   ifelse(mode == "PUBLICTR", "publictr", "athome")))))
+
+
+```
+
+```{r, echo=FALSE}
+transhealth <- mutate(transhealth,
+                      modes = ifelse(mode == "BICYCLE" | mode == "WALK", "Physical Exercise",
+                                     ifelse(mode == "CAR" , "Car", 
+                                            ifelse(mode=="CARPOOL", "Carpool",
+                                                   ifelse(mode == "PUBLICTR", "Public Transportation", "athome")))))
+```
+
+```{r, echo=FALSE}
+transhealth <- mutate(transhealth, carpoolpercent = ifelse(mode == "CARPOOL", percent, NA))
+transhealth <- mutate(transhealth, carpercent = ifelse(mode == "CAR", percent, NA))
+transhealth <- mutate(transhealth, bikepercent = ifelse(mode == "BICYCLE", percent, NA))
+transhealth <- mutate(transhealth, publictrpercent = ifelse(mode == "PUBLICTR", percent, NA))
+transhealth <- mutate(transhealth, walkpercent = ifelse(mode == "WALK", percent, NA))
+
+```
+
+```{r, echo=FALSE}
+transhealth <- transhealth %>%
+  mutate(pblccat = ifelse(publictrpercent < 25, "low", 
+                          ifelse(publictrpercent >= 25 & publictrpercent <= 50, "low-mid", 
+                                 ifelse(publictrpercent > 50 & publictrpercent <= 75, "mid-high", "high"))))
+
+
+transhealth <- transhealth %>%
+  mutate(carcat = ifelse(carpercent < 25, "low", 
+                          ifelse(carpercent >= 25 & carpercent <= 50, "low-mid", 
+                                 ifelse(carpercent > 50 & carpercent <= 75, "mid-high", "high"))))
+  
+  
+transhealth <- transhealth %>%
+  mutate(carpoolcat = ifelse(carpoolpercent < 25, "low", 
+                          ifelse(carpoolpercent >= 25 & carpoolpercent <= 50, "low-mid", 
+                                 ifelse(carpoolpercent > 50 & carpoolpercent <= 75, "mid-high", "high"))))
+   
+   
+transhealth <- transhealth %>%
+  mutate(walkcat = ifelse(walkpercent < 25, "low", 
+                          ifelse(walkpercent >= 25 & walkpercent <= 50, "low-mid", 
+                                 ifelse(walkpercent > 50 & walkpercent <= 75, "mid-high", "high"))))
+
+   
+   
+transhealth <- transhealth %>%
+  mutate(bikecat = ifelse(bikepercent < 25, "low", 
+                          ifelse(bikepercent >= 25 & bikepercent <= 50, "low-mid", 
+                                 ifelse(bikepercent > 50 & bikepercent <= 75, "mid-high", "high"))))
+                                            
+```
+
+\*chat gpt was used to figure out the & part of the code
+
+```{r, echo=FALSE}
+#checking if above code works
+summary(transhealth$bikepercent)
+```
+
+```{r, echo=FALSE}
+transhealth <- mutate(transhealth, rankcat = ifelse(Rank_Order < 20, "low", 
+                                                    ifelse(Rank_Order > 26 & Rank_Order < 40, "mid", "high")))
+
+```
+
+```{r, echo=FALSE}
+table(transhealth$rankcat)
+```
+
+# Summary Statistics
+
+For each death of disease type, higher levels of public transportation use had greater means. Therefore, lower levels of public transportation used as a transportation mode for traveling to work had the best health outcomes.
+
+For each death of disease type, higher levels of car use had greater means. For each disease, there was a trend of greater levels of car use that seemed to be associated with greater mean deaths of Alzheimer, diabetes, and coronary heart disease. Therefore, lower levels of carpool use as a transportation mode for traveling to work had the best health outcomes.
+
+For each death of disease type, higher levels of carpool use had greater means. Therefore, lower levels of carpool use as a transportation mode for traveling to work had the best health outcomes.
+
+We cannot make assumptions about deaths of disease types by levels of walking or bike use due to the fact that there are only low levels of these transportation types. 
+
+### Public transportation
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(pblccat) %>%
+    filter(pblccat!= "NA") %>%
+      filter(coronaryrate!= "NA") %>%
+  summarise(
+    mean_coronaryrate = mean(coronaryrate),
+    sd_coronaryrate = sd(coronaryrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Coronary Heart Disease by Categories of Public Transportation use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(pblccat) %>%
+    filter(pblccat!= "NA") %>%
+      filter(diabetesrate!= "NA") %>%
+  summarise(
+    mean_diabetesrate = mean(diabetesrate),
+    sd_diabetesrate = sd(diabetesrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Diabetes by Categories of Public Transportation use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(pblccat) %>%
+    filter(pblccat!= "NA") %>%
+      filter(alzheimerrate!= "NA") %>%
+  summarise(
+    mean_alzheimerrate = mean(alzheimerrate),
+    sd_alzheimerrate = sd(alzheimerrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Alzheimer's Disease by Categories of Public Transportation use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### Car
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carcat) %>%
+    filter(carcat!= "NA") %>%
+      filter(coronaryrate!= "NA") %>%
+  summarise(
+    mean_coronaryrate = mean(coronaryrate),
+    sd_coronaryrate = sd(coronaryrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Coronary Disease by Categories of Car use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carcat) %>%
+    filter(carcat!= "NA") %>%
+      filter(diabetesrate!= "NA") %>%
+  summarise(
+    mean_diabetesrate = mean(diabetesrate),
+    sd_diabetesrate = sd(diabetesrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Diabetes by Categories of Car use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carcat) %>%
+    filter(carcat!= "NA") %>%
+      filter(alzheimerrate!= "NA") %>%
+  summarise(
+    mean_alzheimerrate = mean(alzheimerrate),
+    sd_alzheimerrate = sd(alzheimerrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Alzheimer's Disease by Categories of Car use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### Carpool
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carpoolcat)%>%
+  filter(carpoolcat!= "NA") %>%
+        filter(Health_Indicator_Desc=="Deaths Due to Coronary Heart Disease") %>%
+  summarise(
+    mean_coronaryrate = mean(coronaryrate),
+    sd_coronaryrate = sd(coronaryrate))
+  
+modecor %>%
+  kbl(caption = "Deaths Due to Coronary Heart Disease by Categories of Carpool use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carpoolcat) %>%
+    filter(carpoolcat!= "NA") %>%
+      filter(diabetesrate!= "NA") %>%
+  summarise(
+    mean_diabetesrate = mean(diabetesrate),
+    sd_diabetesrate = sd(diabetesrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Diabetes by Categories of Carpool use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(carpoolcat) %>%
+    filter(carpoolcat!= "NA") %>%
+      filter(alzheimerrate!= "NA") %>%
+  summarise(
+    mean_alzheimerrate= mean(alzheimerrate),
+    sd_alzheimerrate = sd(alzheimerrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Alzheimer's Disease by Categories of Carpool use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### Bike
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(bikecat) %>%
+    filter(bikecat!= "NA") %>%
+      filter(coronaryrate!= "NA") %>%
+  summarise(
+    mean_coronaryrate= mean(coronaryrate),
+    sd_coronaryrate = sd(coronaryrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Coronary Heart Disease by Categories of Bike use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(bikecat) %>%
+    filter(bikecat!= "NA") %>%
+      filter(diabetesrate!= "NA") %>%
+  summarise(
+    mean_diabetesrate= mean(diabetesrate),
+   sd_diabetesrate = sd(diabetesrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Diabetes by Categories of Bike use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(bikecat) %>%
+    filter(bikecat!= "NA") %>%
+      filter(alzheimerrate!= "NA") %>%
+  summarise(
+    mean_alzheimerrate= mean(alzheimerrate),
+    sd_alzheimerrate = sd(alzheimerrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Alzheimer's Disease by Categories of Bike use ") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### Walk
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(walkcat) %>%
+    filter(walkcat!= "NA") %>%
+      filter(coronaryrate!= "NA") %>%
+  summarise(
+    mean_coronaryrate= mean(coronaryrate),
+    sd_coronaryrate = sd(coronaryrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Cornary Heart Disease by Categories of Walking") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(walkcat) %>%
+    filter(walkcat!= "NA") %>%
+      filter(diabetesrate!= "NA") %>%
+  summarise(
+    mean_diabetesrate= mean(diabetesrate),
+    sd_diabetesrate = sd(diabetesrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Diabetes by Categories of Walking") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+```{r, echo=FALSE}
+modecor <- transhealth %>%
+  group_by(walkcat) %>%
+    filter(walkcat!= "NA") %>%
+      filter(alzheimerrate!= "NA") %>%
+  summarise(
+    mean_alzheimerraterate= mean(alzheimerrate),
+    sd_alzheimerraterate = sd(alzheimerrate))
+modecor %>%
+  kbl(caption = "Deaths Due to Alzheimer's Disease by Categories of Walking") %>%
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+#create a table of alzheimer rates across transportation modes
+
+# Data visualizations
+
+### **Deaths Due to Disease Types by % of Different Modes of Transportation Use**
+
+\*Note: In order to make visualizations simpler, the bike and walking mode of transportation groups have been combined and labeled as "Physical Exercise".
+
+In the group of scatterplots of percentage of different modes of transportation by death due to Alzheimer's disease, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. None of these graphs had very strong associations. 
+
+In the group of scatterplots of percentages of different modes of transportation by deaths due to Coronary Heart Disease, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. These graphs seemed to have stronger association than the scatterplots of Alzheimer's disease.  
+
+ In the group of scatterplots of percentages of different modes of transportation by deaths due to Diabetes, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. These graphs seemed to have stronger association than the scatterplots of Alzheimer's disease, similar to that of the Coronary Heart disease plots.
+
+```{r, echo=FALSE}
+
+plots <- transhealth %>%
+  filter(!is.na(percent) & !is.na(alzheimerrate) & !is.na(modes) & modes != "athome")
+
+initial <- ggplot(plots, aes(x = percent, y = alzheimerrate)) +
+  geom_point(position="jitter") +
+    geom_smooth(method = lm, se = FALSE, col = "black")+
+ facet_wrap(~modes, nrow = 4) +
+  labs(title = "Deaths Due to Alzheimer's Disease by % of Different Modes of Transportation Use", x = "Percent of Different Modes of Transportation", y = "Rate of Deaths Due to Alzheimer's Disease") +
+  theme(strip.text.y=element_text(vjust=10, hjust=10))
+
+plotly <- ggplotly(initial)
+plotly
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(percent) & !is.na(coronaryrate) & !is.na(modes)& modes != "athome") 
+
+initial <- ggplot(plots, aes(x = percent, y = coronaryrate )) +
+  geom_point(position="jitter") +
+    geom_smooth(method = lm, se = FALSE, col = "black")+
+  facet_wrap(~modes, nrow = 4) +
+  labs(title = "Deaths Due to Coronary Heart Disease by Percentage of Different Modes of Transportation Use", x = "Percent of Different Modes of Transportation", y = "Rate of Deaths Due to Alzheimer's Disease")
+
+plotly <- ggplotly(initial)
+plotly
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(percent) & !is.na(diabetesrate) & !is.na(modes)& modes != "athome") 
+
+initial <- ggplot(plots, aes(x = percent, y = diabetesrate )) +
+  geom_point(position="jitter") +
+    geom_smooth(method = lm, se = FALSE, col = "black")+
+  facet_wrap(~modes, nrow=4) +
+  labs(title = "Deaths Due to Diabetes by % of Different Modes of Transportation Use", x = "Percent of Different Modes of Transportation", y = "Rate of Deaths Due to Alzheimer's Disease")
+
+plotly <- ggplotly(initial)
+plotly
+```
+
+### Rate of Deaths due to Disease
+
+In the graph of deaths by categories of car use, all disease types had similar trends, in which higher levels of car use had greater rates of deaths, followed by mid-high levels, then low-mid levels. In the graph of deaths by categories of carpool use, low levels had higher rates of each type of disease, followed by low-mid carpool use. Low levels of public transportation were associated with higher levels of deaths from the three disease types. Lastly, biking and walking only had one category (low levels), so we are unable to compare these modes of transportations with deaths due to Alzheimer's, Diabetes, and Coronary heart disease. 
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(`Age-Adjusted_Rate`) & !is.na(`Health_Indicator_Desc`) & !is.na(carcat)) 
+
+
+ggplot(plots, aes(x = carcat, y = `Age-Adjusted_Rate`, fill=carcat)) +
+  geom_bar(stat='identity') +
+  facet_wrap(~`Health_Indicator_Desc`, ncol=3) +
+  labs(title = "Rate of Deaths by Categories of Car Use", x = "Categories of Car Use", y = "Rate of Deaths due to Disease")
+
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(`Age-Adjusted_Rate`) & !is.na(`Health_Indicator_Desc`) & !is.na(carpoolcat)) 
+
+
+ggplot(plots, aes(x = carpoolcat, y = `Age-Adjusted_Rate`, fill=carpoolcat)) +
+  geom_bar(stat='identity') +
+  facet_wrap(~`Health_Indicator_Desc`, ncol=3) +
+  labs(title = "Rate of Deaths by Categories of Carpool Use", x = "Categories of Carpool Use", y = "Rate of Deaths due to Disease")
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(`Age-Adjusted_Rate`) & !is.na(`Health_Indicator_Desc`) & !is.na(pblccat)) 
+
+
+ggplot(plots, aes(x = pblccat, y = `Age-Adjusted_Rate`, fill=pblccat)) +
+  geom_bar(stat='identity') +
+  facet_wrap(~`Health_Indicator_Desc`, ncol=3) +
+  labs(title = "Rate of Deaths by Categories of Public Transportation Use", x = "Categories of Public Transportation Use", y = "Rate of Deaths due to Disease")
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(`Age-Adjusted_Rate`) & !is.na(`Health_Indicator_Desc`) & !is.na(walkcat)) 
+
+ggplot(plots, aes(x = walkcat, y = `Age-Adjusted_Rate`, fill="orange" )) +
+  geom_bar(stat='identity') +
+  facet_wrap(~`Health_Indicator_Desc`, ncol=3) +
+  labs(title = "Deaths by Levels of walking", x = "Categories of Walking", y = "Rate of Deaths due to Disease")
+```
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(`Age-Adjusted_Rate`) & !is.na(`Health_Indicator_Desc`) & !is.na(bikecat)) 
+
+ggplot(plots, aes(x = bikecat, y = `Age-Adjusted_Rate`, fill="orange")) +
+  geom_bar(stat='identity') +
+  facet_wrap(~`Health_Indicator_Desc`, ncol=3) +
+  labs(title = "Deaths by Levels of Biking", x = "Categories of Biking", y = "Rate of Deaths due to Disease")
+```
+
+### County Rankings by Modes of Transportation
+
+The final graph was used to determine whether there is an association between County Health Rankings and use of various modes of transportation. County Rankings were assigned by California Department of Public Health and were given based on the age adjusted rates of deaths due to common diseases (and therefore smaller values of rank correspond to better health outcomes). From this graph, all modes of transportation had the highest ranking group associated with the highest percentage of use of modes of transportation.
+
+```{r, echo=FALSE}
+plots <- transhealth %>%
+  filter(!is.na(percent) & !is.na(Rank_Order))
+ggplot(plots, aes(x=rankcat, y= percent, fill= Health_Indicator_Desc)) +
+     geom_bar(stat='identity') +
+   facet_wrap(~modes, nrow = 2, scales = "free_y") +
+scale_fill_brewer(palette = "Dark2") +
+  labs(title = "County Rankings by percentages of Transportation ", x = "County Ranking Categories", y = "Percentage of use of Modes of Transportation")
+```
+
+# Summary of Findings
+
+\
+\*chat GPT was used throughout the project for error corrections and assistance with some codes
