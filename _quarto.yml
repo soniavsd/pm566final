@@ -8,9 +8,9 @@ website:
     left:
       - href: index.qmd
         text: Midterm Project
-      - href: about.qmd  
-        text: Download the Report & References
-
+      - about.qmd
+      - href: pm566_FinalProject_RamosV.pdf
+        text: Download Report
 format:
   html:
     theme: cosmo

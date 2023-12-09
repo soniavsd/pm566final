@@ -2,7 +2,7 @@
 title: "References"
 ---
 
-[Download Report](../pm566_FinalProject_Ramos_V.pdf)
+[Download Report](pm566_FinalProject_RamosV.pdf)
 
 References:
 
