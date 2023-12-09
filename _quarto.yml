@@ -1,13 +1,15 @@
 project:
   type: website
+  output-dir: docs
 
 website:
-  title: "temp"
+  title: "pm566 Final"
   navbar:
     left:
       - href: index.qmd
         text: Midterm Project
-      - about.qmd
+      - href: about.qmd  
+        text: About
 
 format:
   html:
@@ -16,4 +18,5 @@ format:
     toc: true
 
 editor: visual
+
 

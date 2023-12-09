@@ -1,8 +1,14 @@
 ---
-title: "temp"
+title: "Final Project"
 ---
 
-### **Introduction**
+# **Brief Description**
+
+The focus of this website is to evaluate the relationship between health and modes of transportation in California. Recent evidence suggests that using driving as a primary mode of transportation can increase stress levels, reduce mental health, and increase sedentary lifestyles (). To test this, data was gathered from the California Department of Public Health Human Services Open Portal to determine whether health indicators are associated with frequency of using various modes of transportation to work.
+
+![Photo Source: https://www.lytx.com/newsletter/driving-healthy-how-driver-health-wellness-affects-everyone](images/driving-healthy.jpg)
+
+# **Introduction**
 
 In studies conducted outside of the United States, people who were able to commute via physical activity (such as walking and bike riding) were significantly associated with having increased positive health indicators (Chillón, et al., 2012; Andersen et al., 2011). Additionally, those who have access and regularly use public transportation have decreased commute stress compared to those who drive daily([link](https://books.google.com/books?hl=en&lr=&id=4AwOp6sJl3oC&oi=fnd&pg=PP1&dq=United+States+of+American+and+transportation+%22car%22&ots=bQb5vPsFn3&sig=O-1A2h3ZtZgaQ2Lljyx2Ibqg5Xo#v=onepage&q=United%20States%20of%20American%20and%20transportation%20%22car%22&f=false)).
 
@@ -97,10 +103,6 @@ countyhealth$diabetesrate <- ifelse(countyhealth$diabetes == 1 & countyhealth$He
 ```
 
 ```{r, echo=FALSE}
-summary(countyhealth$diabetesrate)
-```
-
-```{r, echo=FALSE}
 #countyhealth = subset(countyhealth, select = -c(Annotation_Desc, Rates_Annotation_Code, Numerator_Annotation_Code, Denominator_Annotation_Code, Numerator_Year_Period, Numerator_Total, Numerator_Average,Denominator_Total, Table, Healthy_People_Objective_Number, Healthy_People_Objective_Met
 #) )
 ```
@@ -188,18 +190,9 @@ transhealth <- transhealth %>%
 \*chat gpt was used to figure out the & part of the code
 
 ```{r, echo=FALSE}
-#checking if above code works
-summary(transhealth$bikepercent)
-```
-
-```{r, echo=FALSE}
 transhealth <- mutate(transhealth, rankcat = ifelse(Rank_Order < 20, "low", 
                                                     ifelse(Rank_Order > 26 & Rank_Order < 40, "mid", "high")))
 
-```
-
-```{r, echo=FALSE}
-table(transhealth$rankcat)
 ```
 
 # Summary Statistics
@@ -210,7 +203,7 @@ For each death of disease type, higher levels of car use had greater means. For 
 
 For each death of disease type, higher levels of carpool use had greater means. Therefore, lower levels of carpool use as a transportation mode for traveling to work had the best health outcomes.
 
-We cannot make assumptions about deaths of disease types by levels of walking or bike use due to the fact that there are only low levels of these transportation types. 
+We cannot make assumptions about deaths of disease types by levels of walking or bike use due to the fact that there are only low levels of these transportation types.
 
 ### Public transportation
 
@@ -424,13 +417,17 @@ modecor %>%
 
 ### **Deaths Due to Disease Types by % of Different Modes of Transportation Use**
 
-\*Note: In order to make visualizations simpler, the bike and walking mode of transportation groups have been combined and labeled as "Physical Exercise".
+*\*Note: In order to make visualizations simpler, the bike and walking mode of transportation groups have been combined and labeled as "Physical Exercise".*
 
-In the group of scatterplots of percentage of different modes of transportation by death due to Alzheimer's disease, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. None of these graphs had very strong associations. 
+The following group of scatterplots are interactive plots depicting the percentage of different modes of transportation by death due to Alzheimer's, Diabetes, and Coronary Heart disease. To get a closer view of the graphs and relationship between deaths due to a disease and modes of transportation, hover over the graph's data points. 
+
+In the first facet group, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. None of these graphs had very strong associations. 
 
 In the group of scatterplots of percentages of different modes of transportation by deaths due to Coronary Heart Disease, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. These graphs seemed to have stronger association than the scatterplots of Alzheimer's disease.  
 
- In the group of scatterplots of percentages of different modes of transportation by deaths due to Diabetes, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. These graphs seemed to have stronger association than the scatterplots of Alzheimer's disease, similar to that of the Coronary Heart disease plots.
+In the group of scatterplots of percentages of different modes of transportation by deaths due to Diabetes, car use and carpool use seems to have a positive association with rate of death from Alzheimer's disease, whereas physical exercise and public transportation had negative associations. These graphs seemed to have stronger association than the scatterplots of Alzheimer's disease, similar to that of the Coronary Heart disease plots.
+
+\
 
 ```{r, echo=FALSE}
 
@@ -478,7 +475,7 @@ plotly
 
 ### Rate of Deaths due to Disease
 
-In the graph of deaths by categories of car use, all disease types had similar trends, in which higher levels of car use had greater rates of deaths, followed by mid-high levels, then low-mid levels. In the graph of deaths by categories of carpool use, low levels had higher rates of each type of disease, followed by low-mid carpool use. Low levels of public transportation were associated with higher levels of deaths from the three disease types. Lastly, biking and walking only had one category (low levels), so we are unable to compare these modes of transportations with deaths due to Alzheimer's, Diabetes, and Coronary heart disease. 
+In the graph of deaths by categories of car use, all disease types had similar trends, in which higher levels of car use had greater rates of deaths, followed by mid-high levels, then low-mid levels. In the graph of deaths by categories of carpool use, low levels had higher rates of each type of disease, followed by low-mid carpool use. Low levels of public transportation were associated with higher levels of deaths from the three disease types. Lastly, biking and walking only had one category (low levels), so we are unable to compare these modes of transportation with deaths due to Alzheimer's, Diabetes, and Coronary heart disease. 
 
 ```{r, echo=FALSE}
 plots <- transhealth %>%
@@ -550,5 +547,10 @@ scale_fill_brewer(palette = "Dark2") +
 
 # Summary of Findings
 
+In general, lower levels of any mode of transportation were associated with less average deaths due to Alzheimer's, Diabetes, and Coronary heart disease. 
+
+Using a car and carpooling to work had positive relationships with all types of deaths due to a disease explored. Contrastingly, lower frequencies of deaths due to any type of disease explored were associated with higher levels of public transportation and walking or biking to work. All modes of transportation had the highest ranking group associated with the highest percentage of use of modes of transportation, though these values were lower in physical exercise and public transportation due to less data points. Although these findings show that greater use of various modes of transportation lead to negative health outcomes, statistical tests are needed in order to determine their significance. 
+
 \
-\*chat GPT was used throughout the project for error corrections and assistance with some codes
+\
+*\*chat GPT was used throughout the project for error corrections and assistance with some codes*
