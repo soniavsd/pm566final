@@ -9,7 +9,7 @@ website:
       - href: index.qmd
         text: Midterm Project
       - href: about.qmd  
-        text: About
+        text: Download the Report & References
 
 format:
   html:
