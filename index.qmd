@@ -554,3 +554,5 @@ Using a car and carpooling to work had positive relationships with all types of 
 \
 \
 *\*chat GPT was used throughout the project for error corrections and assistance with some codes*
+
+\[Download Report\](pm566_FinalProject_Ramos_V.pdf)
