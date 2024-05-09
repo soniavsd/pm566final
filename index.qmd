@@ -4,15 +4,15 @@ title: "Final Project"
 
 # **Brief Description**
 
-The focus of this website is to evaluate the relationship between health and modes of transportation in California. Recent evidence suggests that using driving as a primary mode of transportation can increase stress levels, reduce mental health, and increase sedentary lifestyles (). To test this, data was gathered from the California Department of Public Health Human Services Open Portal to determine whether health indicators are associated with frequency of using various modes of transportation to work.
+The focus of this website is to evaluate the relationship between health and modes of transportation in California. Recent evidence suggests that using driving as a primary mode of transportation can increase stress levels, reduce mental health, and increase sedentary lifestyles (1). To test this, data was gathered from the California Department of Public Health Human Services Open Portal to determine whether health indicators are associated with frequency of using various modes of transportation to work.
 
 ![Photo Source: https://www.lytx.com/newsletter/driving-healthy-how-driver-health-wellness-affects-everyone](images/driving-healthy.jpg)
 
 # **Introduction**
 
-In studies conducted outside of the United States, people who were able to commute via physical activity (such as walking and bike riding) were significantly associated with having increased positive health indicators (Chillón, et al., 2012; Andersen et al., 2011). Additionally, those who have access and regularly use public transportation have decreased commute stress compared to those who drive daily([link](https://books.google.com/books?hl=en&lr=&id=4AwOp6sJl3oC&oi=fnd&pg=PP1&dq=United+States+of+American+and+transportation+%22car%22&ots=bQb5vPsFn3&sig=O-1A2h3ZtZgaQ2Lljyx2Ibqg5Xo#v=onepage&q=United%20States%20of%20American%20and%20transportation%20%22car%22&f=false)).
+In studies conducted outside of the United States, people who were able to commute via physical activity (such as walking and bike riding) were significantly associated with having increased positive health indicators (2,3). Additionally, those who have access and regularly use public transportation have decreased commute stress compared to those who drive daily(4).
 
-Although it is known in public health and urban planning literature, the majority of the United States is a car centered landscape. Starting in the 1920's, the American population became increasingly interested in personal motor vehicles, forcing administrators and engineers to rapidly build road infrastructure without regard to future potential problems ([link](https://books.google.com/books?hl=en&lr=&id=4AwOp6sJl3oC&oi=fnd&pg=PP1&dq=United+States+of+American+and+transportation+%22car%22&ots=bQb5vPsFn3&sig=O-1A2h3ZtZgaQ2Lljyx2Ibqg5Xo#v=onepage&q=United%20States%20of%20American%20and%20transportation%20%22car%22&f=false)). In 2019, the US Census Bureau reported that 75% of Americans drive alone as their means of transportation, 5% use public transportation, and less than 3% use physical exercise ([link](https://www.census.gov/content/dam/Census/library/publications/2021/acs/acs-48.pdf)).
+Although it is known in public health and urban planning literature, the majority of the United States is a car centered landscape. Starting in the 1920's, the American population became increasingly interested in personal motor vehicles, forcing administrators and engineers to rapidly build road infrastructure without regard to future potential problems (5). In 2019, the US Census Bureau reported that 75% of Americans drive alone as their means of transportation, 5% use public transportation, and less than 3% use physical exercise (6).
 
 In order to investigate this gap between knowledge and practice, the California Health and Human Services Open Data Portal was utilized to access transportation and health data. In the portal, I used a dataset called "Transportation to Work" from the Healthy Communities Data and Indicators Project of the Office of Health Equity. Although the datasets provide a comprehensive overview of transportation in America, the main variable I will focus on is the frequency of different types of transportation people take to go to work (car, car pool, walking, riding a bike, and public transportation). Health status indicators were also accessed through the California Health and Human Services Open Data portal via a report by the California Department of Public health and the California Conference of Local Health Officers entitled, "County Health Status Profiles". In the dataset, health indicators were collected at county-level. For this project, the following health indicators were utilized: Deaths Due to Alzeimer's Disease, Deaths Due to Coronary Heart Disease, and Deaths Due to Diabetes. Additionally, in order to better assess the health of a county, the county's "Rank" was utlized. This variable is is the ranking each county was given based on the age adjusted rate of deaths due to common diseases in which low rankings (1-25) would be counties with better health indicators compared to counties with higher rankings (26+). In this study, multiple questions will be answered that all address the overarching question: What is the association between different health indicators (diseases) and mode of transportation? The associations that will be investigated are:
 
@@ -197,13 +197,45 @@ transhealth <- mutate(transhealth, rankcat = ifelse(Rank_Order < 20, "low",
 
 # Summary Statistics
 
-For each death of disease type, higher levels of public transportation use had greater means. Therefore, lower levels of public transportation used as a transportation mode for traveling to work had the best health outcomes.
+Although each transportation was separated by categories from high to low, not all levels were represented due to the absence of data.
 
-For each death of disease type, higher levels of car use had greater means. For each disease, there was a trend of greater levels of car use that seemed to be associated with greater mean deaths of Alzheimer, diabetes, and coronary heart disease. Therefore, lower levels of carpool use as a transportation mode for traveling to work had the best health outcomes.
+\
 
-For each death of disease type, higher levels of carpool use had greater means. Therefore, lower levels of carpool use as a transportation mode for traveling to work had the best health outcomes.
+**Intra-Transportation Use Comparisons:**
 
-We cannot make assumptions about deaths of disease types by levels of walking or bike use due to the fact that there are only low levels of these transportation types.
+**Public transportation**
+
+Lower levels of public transportation were associated with higher means of coronary heart disease, diabetes, and Alzheimer\'s disease compared to low to mid levels.
+
+**Car**
+
+High levels of car use had the largest coronary heart disease, diabetes, and Alzheimer\'s disease, followed by mid-high levels, then low-mid levels.
+
+**Carpool**
+
+Low-mid levels of carpool use were associated with higher means of coronary heart disease, diabetes, and Alzheimer\'s disease compared to low levels.
+
+**Bike & Walk**
+
+As there is only one level of bike and walk use available in the dataset, comparison of levels of bike and walk use are not applicable.
+
+**Inter-Transportation Use Comparisons:**
+
+**The following lists each transportation mode in order from greatest disease mean to lowest disease mean:**
+
+**Coronary Heart Disease**
+
+Car\>Public Transportation \> Carpool\> Walk =Bike 
+
+**Diabetes**
+
+Carpool\>Car\>Public Transportation\>Bike=Walk
+
+**Alzheimer\'s Disease**
+
+Carpool\>Public Transportation\>Car\>Bike=Walk
+
+\
 
 ### Public transportation
 
